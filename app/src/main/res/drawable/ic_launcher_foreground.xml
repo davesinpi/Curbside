@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Shield (privacy) with a steering wheel (car). 108dp adaptive canvas; artwork kept inside the 66dp safe zone. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- shield -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,27 L77,35.5 V53 C77,67.5 67,77 54,82 C41,77 31,67.5 31,53 V35.5 Z"/>
+
+    <!-- steering wheel: rim -->
+    <path
+        android:strokeColor="#1E3A5F"
+        android:strokeWidth="3.6"
+        android:fillColor="#00000000"
+        android:pathData="M54,53 m-12.5,0 a12.5,12.5 0 1,0 25,0 a12.5,12.5 0 1,0 -25,0"/>
+
+    <!-- steering wheel: three spokes -->
+    <path
+        android:strokeColor="#1E3A5F"
+        android:strokeWidth="3.6"
+        android:strokeLineCap="round"
+        android:pathData="M42.5,51 L50.5,52.5 M65.5,51 L57.5,52.5 M54,57 L54,64.5"/>
+
+    <!-- steering wheel: hub -->
+    <path
+        android:fillColor="#1E3A5F"
+        android:pathData="M54,53 m-4,0 a4,4 0 1,0 8,0 a4,4 0 1,0 -8,0"/>
+</vector>
