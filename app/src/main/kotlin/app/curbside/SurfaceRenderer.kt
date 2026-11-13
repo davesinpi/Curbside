@@ -241,6 +241,7 @@ class SurfaceRenderer(private val carContext: CarContext) {
 
     fun onScroll(dx: Float, dy: Float) { webView?.scrollBy(dx.toInt(), dy.toInt()) }
     fun onFling(vx: Float, vy: Float) { webView?.flingScroll(-vx.toInt(), -vy.toInt()) }
+    fun zoom(zoomIn: Boolean) { webView?.apply { if (zoomIn) zoomIn() else zoomOut() } }
     fun onScale(factor: Float) { if (factor > 0f) webView?.zoomBy(factor.coerceIn(0.01f, 100f)) }
 
     private fun fullscreenVideoClient() = object : WebChromeClient() {

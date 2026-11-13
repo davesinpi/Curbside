@@ -37,18 +37,24 @@ full-screen apps (such as PrivaCar or AABrowser).
 - A car or head unit with Android Auto (USB or wireless).
 
 **Install**
-1. Download `Curbside-1.1.apk` from the [latest release](../../releases/latest)
+1. Download `Curbside-1.2.apk` from the [latest release](../../releases/latest)
    and install it on the phone (open the file and allow installing from
-   that source, or `adb install Curbside-1.1.apk`). Play Protect may warn about a
+   that source, or `adb install Curbside-1.2.apk`). Play Protect may warn about a
    sideloaded app: choose *More details*, then *Install anyway*.
 2. Turn on **Unknown sources** in Android Auto: open Android Auto's settings, tap
    **Version** 10 times to unlock developer mode, then **⋮** > **Developer
    settings** > turn on **Unknown sources**.
 3. Connect the phone to the car. **Curbside** appears in Android Auto's launcher.
 
+> **If Curbside disappears after the car restarts**, the app was installed
+> without an installer record (file manager or plain `adb install`), and
+> Android Auto drops it from the launcher on reconnect. Reinstall it with the
+> Play Store recorded as the installer; your settings and bookmarks are kept:
+> `adb install -r -i com.android.vending Curbside-1.2.apk`
+
 *(Optional)* check the APK is genuine. The signing certificate's SHA-256 must be
 `84:48:54:43:AD:A8:BB:DA:AF:72:7F:43:AA:E2:49:D0:96:DF:1F:D4:D2:72:E2:44:26:5A:9C:DB:41:22:1E:78`
-(`apksigner verify --print-certs Curbside-1.1.apk`).
+(`apksigner verify --print-certs Curbside-1.2.apk`).
 
 ## Using it in the car
 
@@ -59,7 +65,7 @@ full-screen apps (such as PrivaCar or AABrowser).
 | **⋮** | Menu, titled with the current page: Home, Reload, **Bookmark this page**, **Text size** (100, 125, 150%), desktop or mobile site, and your bookmarks. |
 | **▲ / ▼** | Scroll the page up or down by about one screen. |
 | Tap the page | Taps links, buttons and video controls. |
-| Drag / fling / pinch | Scroll freely and zoom (where the car screen supports it). |
+| Drag / fling / pinch | Scroll freely and zoom (where the car screen supports it). **⋮** > *Zoom in* / *Zoom out* works on every screen. |
 | Tap a text box | Opens the car keyboard. What you type goes into the box and Enter is pressed, so searches on sites such as YouTube work. |
 
 The buttons hide after a few seconds; tap the screen to bring them back.
@@ -129,11 +135,13 @@ Car screen <- Android Auto <- NavigationTemplate (Curbside)
 2. Android Auto settings > **Developer settings**: make sure **Unknown sources**
    is still on.
 3. Disconnect and reconnect the phone.
+4. If it shows after installing but vanishes once the car restarts, reinstall with
+   `adb install -r -i com.android.vending Curbside-1.2.apk` (see Install).
 
 **Tapping play does nothing.** Update to the latest build. Older builds requested
 audio focus twice and paused video right after it started.
 
-**A site looks cramped or tiny.** Use **⋮** > *Switch to mobile site*, or pinch to zoom.
+**A site looks cramped or tiny.** Use **⋮** > *Switch to mobile site*, or **⋮** > *Zoom in*.
 
 ## Limitations
 

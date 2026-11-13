@@ -22,19 +22,21 @@ class MenuScreen(carContext: CarContext, private val renderer: SurfaceRenderer) 
         val page = listOf(
             Triple("Home", R.drawable.ic_home, renderer::home),
             Triple("Reload", R.drawable.ic_reload, renderer::reload),
+            // Most head units are single-touch, so pinch never arrives: zoom by tap instead.
+            Triple("Zoom in", R.drawable.ic_zoom_in) { renderer.zoom(true) },
+            Triple("Zoom out", R.drawable.ic_zoom_out) { renderer.zoom(false) },
             Triple("Bookmark this page", R.drawable.ic_bookmark) {
                 CarToast.makeText(carContext, renderer.bookmarkPage(), CarToast.LENGTH_SHORT).show()
             },
             Triple("Text size: ${textSize(carContext)}%", R.drawable.ic_text) { renderer.nextTextSize() },
             Triple(if (desktop) "Switch to mobile site" else "Switch to desktop site", R.drawable.ic_desktop, renderer::toggleDesktop),
         )
-        val pageList = ItemList.Builder()
-        page.forEach { (title, icon, act) -> pageList.addItem(row(title, null, icon) { act() }) }
-
         // Hosts cap list rows (often lower while driving); bookmarks get whatever is left.
         val limit = if (carContext.carAppApiLevel >= 2)
             carContext.getCarService(ConstraintManager::class.java).getContentLimit(ConstraintManager.CONTENT_LIMIT_TYPE_LIST)
         else 6
+        val pageList = ItemList.Builder()
+        page.take(limit).forEach { (title, icon, act) -> pageList.addItem(row(title, null, icon) { act() }) }
         val marks = Bookmarks.list(carContext).take((limit - page.size).coerceAtLeast(0))
 
         val template = ListTemplate.Builder()

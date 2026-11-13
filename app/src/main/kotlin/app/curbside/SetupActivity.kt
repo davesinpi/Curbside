@@ -88,7 +88,9 @@ class SetupActivity : Activity() {
 
         column.addView(card("Not showing in Android Auto?",
             text("In Android Auto settings, check that Curbside is ticked under Customise launcher, " +
-                "and that Unknown sources is still on in Developer settings. Then reconnect.", muted, 14f),
+                "and that Unknown sources is still on in Developer settings. Then reconnect. " +
+                "If it vanishes after the car restarts, reinstall from a computer with " +
+                "adb install -r -i com.android.vending Curbside.apk", muted, 14f),
         ))
 
         val scroll = ScrollView(this).apply { setBackgroundColor(bg); addView(column) }
