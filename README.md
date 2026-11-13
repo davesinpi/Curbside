@@ -15,8 +15,8 @@ running **Android 14 and older**, where Android Auto won't show normal
 full-screen apps (such as PrivaCar or AABrowser).
 
 <p align="center">
-  <img src="docs/car-browser-v1.1.png" width="400" alt="Curbside on the car screen">
-  <img src="docs/car-menu-v1.1.png" width="400" alt="Curbside menu on the car screen">
+  <img src="docs/car-browser-v1.2.png" width="400" alt="Curbside on the car screen">
+  <img src="docs/car-menu-v1.2.png" width="400" alt="Curbside menu on the car screen">
 </p>
 
 ## Contents
@@ -68,7 +68,7 @@ full-screen apps (such as PrivaCar or AABrowser).
 | Drag / fling / pinch | Scroll freely and zoom (where the car screen supports it). **⋮** > *Zoom in* (tap the row) or its zoom-out button works on every screen; the zoom level is remembered. |
 | Tap a text box | Opens the car keyboard. What you type goes into the box and Enter is pressed, so searches on sites such as YouTube work. |
 
-The buttons hide after a few seconds; tap the screen to bring them back.
+The buttons hide after a few seconds; tap the screen to bring them back. The page fills the whole screen, so a tap made while the buttons are hidden also reaches the page under it.
 
 **Picks up where you left off.** Curbside reopens the last page you were on, even after
 the phone restarts it. Text size and the desktop/mobile choice are remembered too.
