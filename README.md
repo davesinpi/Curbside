@@ -15,8 +15,8 @@ running **Android 14 and older**, where Android Auto won't show normal
 full-screen apps (such as PrivaCar or AABrowser).
 
 <p align="center">
-  <img src="docs/car-browser.png" width="400" alt="Curbside on the car screen">
-  <img src="docs/car-menu.png" width="400" alt="Curbside menu on the car screen">
+  <img src="docs/car-browser-v1.1.png" width="400" alt="Curbside on the car screen">
+  <img src="docs/car-menu-v1.1.png" width="400" alt="Curbside menu on the car screen">
 </p>
 
 ## Contents
