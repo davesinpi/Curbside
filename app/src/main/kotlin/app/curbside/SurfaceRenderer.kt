@@ -91,9 +91,9 @@ class SurfaceRenderer(private val carContext: CarContext) {
             settings.mediaPlaybackRequiresUserGesture = false
             settings.useWideViewPort = true
             settings.loadWithOverviewMode = true
-            settings.builtInZoomControls = true
-            settings.displayZoomControls = false
-            settings.setSupportZoom(true)
+            // WebView's own zoom off: it double-tap zoomed on every quick pair of taps. Zoom is CSS
+            // zoom instead (menu row, or pinch via onScale), which also keeps pages fitting the width.
+            settings.setSupportZoom(false)
             settings.textZoom = textSize(carContext)
             // Privacy defaults (design section 6): no third-party cookies, no form/password saving.
             @Suppress("DEPRECATION")
@@ -242,12 +242,19 @@ class SurfaceRenderer(private val carContext: CarContext) {
         webView?.let(::applyZoom)
     }
     // Fullscreen video gets 100%: CSS zoom would shrink it too and leave the rest of the screen white.
-    // touch-action: manipulation turns off double-tap zoom (quick taps kept zooming) but keeps pinch.
     private fun applyZoom(wv: WebView) {
         val z = if (customView != null) 100 else pageZoom(carContext)
-        wv.evaluateJavascript("var s=document.documentElement.style;s.zoom='$z%';s.touchAction='manipulation'", null)
+        wv.evaluateJavascript("document.documentElement.style.zoom='$z%'", null)
     }
-    fun onScale(factor: Float) { if (factor > 0f) webView?.zoomBy(factor.coerceIn(0.01f, 100f)) }
+    // Pinch (multi-touch head units) steps the same CSS zoom as the menu, once per ~25% of pinch.
+    // The host also reports a double tap as a single onScale(2.0) (map zoom-in); quick taps on a
+    // page are just taps, so that one is dropped. Real pinches arrive as many small factors.
+    private var pinch = 1f
+    fun onScale(factor: Float) {
+        if (factor <= 0f || factor >= 2f) return
+        pinch *= factor
+        if (pinch > 1.25f || pinch < 0.8f) { zoom(if (pinch > 1f) 1 else -1); pinch = 1f }
+    }
 
     private fun fullscreenVideoClient() = object : WebChromeClient() {
         override fun onShowCustomView(view: View, callback: CustomViewCallback) {
