@@ -2,9 +2,9 @@
 
 # Curbside
 
-[![Release](https://img.shields.io/github/v/release/davesinpi/Curbside)](../../releases)
+[![Release](https://img.shields.io/github/v/release/davesinpi/Curbside?sort=semver&cacheSeconds=3600)](https://github.com/davesinpi/Curbside/releases/latest)
 ![Android](https://img.shields.io/badge/Android-8%2B-3DDC84?logo=android&logoColor=white)
-![Android Auto](https://img.shields.io/badge/Android_Auto-Android_14_phones_too-34A853?logo=androidauto&logoColor=white)
+![Android Auto](https://img.shields.io/badge/Android_Auto-works_on_Android_14-34A853?logo=androidauto&logoColor=white)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 > **Read the [DISCLAIMER](DISCLAIMER.md) before installing or using this app.**
