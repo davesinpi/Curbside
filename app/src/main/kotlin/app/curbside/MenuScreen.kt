@@ -17,14 +17,15 @@ import androidx.car.app.model.Template
 class MenuScreen(carContext: CarContext, private val renderer: SurfaceRenderer) : Screen(carContext) {
 
     override fun onGetTemplate(): Template {
+        val desktop = isDesktop(carContext)
         val page = listOf(
-            "Home" to renderer::home,
-            "Forward" to renderer::forward,
-            "Reload" to renderer::reload,
-            (if (isDesktop(carContext)) "Switch to mobile site" else "Switch to desktop site") to renderer::toggleDesktop,
+            Triple("Home", R.drawable.ic_home, renderer::home),
+            Triple("Forward", R.drawable.ic_forward, renderer::forward),
+            Triple("Reload", R.drawable.ic_reload, renderer::reload),
+            Triple(if (desktop) "Switch to mobile site" else "Switch to desktop site", R.drawable.ic_desktop, renderer::toggleDesktop),
         )
         val pageList = ItemList.Builder()
-        page.forEach { (title, act) -> pageList.addItem(row(title, null) { act() }) }
+        page.forEach { (title, icon, act) -> pageList.addItem(row(title, null, icon) { act() }) }
 
         // Hosts cap list rows (often lower while driving); bookmarks get whatever is left.
         val limit = if (carContext.carAppApiLevel >= 2)
@@ -38,14 +39,15 @@ class MenuScreen(carContext: CarContext, private val renderer: SurfaceRenderer) 
             .addSectionedList(SectionedItemList.create(pageList.build(), "Page"))
         if (marks.isNotEmpty()) {
             val markList = ItemList.Builder()
-            marks.forEach { b -> markList.addItem(row(b.title, b.url) { renderer.load(b.url) }) }
+            marks.forEach { b -> markList.addItem(row(b.title, b.url, R.drawable.ic_bookmark) { renderer.load(b.url) }) }
             template.addSectionedList(SectionedItemList.create(markList.build(), "Bookmarks"))
         }
         return template.build()
     }
 
-    private fun row(title: String, text: String?, onClick: () -> Unit) = Row.Builder()
+    private fun row(title: String, text: String?, icon: Int, onClick: () -> Unit) = Row.Builder()
         .setTitle(title)
+        .setImage(carIcon(icon))
         .apply { text?.let { addText(it) } }
         .setOnClickListener { onClick(); screenManager.pop() }
         .build()

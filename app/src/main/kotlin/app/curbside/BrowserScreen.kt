@@ -7,6 +7,8 @@ import androidx.car.app.Screen
 import androidx.car.app.SurfaceCallback
 import androidx.car.app.SurfaceContainer
 import androidx.car.app.model.Action
+import androidx.car.app.model.CarIcon
+import androidx.core.graphics.drawable.IconCompat
 import androidx.car.app.model.ActionStrip
 import androidx.car.app.model.Template
 import androidx.car.app.navigation.model.NavigationTemplate
@@ -18,7 +20,12 @@ class BrowserScreen(carContext: CarContext) : Screen(carContext), DefaultLifecyc
 
     private val renderer = SurfaceRenderer(carContext)
 
-    init { lifecycle.addObserver(this) }
+    init {
+        lifecycle.addObserver(this)
+        renderer.onEditText = { current ->
+            screenManager.push(AddressScreen(carContext, "Type here", current) { renderer.typeText(it) })
+        }
+    }
 
     override fun onCreate(owner: LifecycleOwner) {
         carContext.getCarService(AppManager::class.java).setSurfaceCallback(surfaceCallback)
@@ -27,25 +34,27 @@ class BrowserScreen(carContext: CarContext) : Screen(carContext), DefaultLifecyc
     override fun onDestroy(owner: LifecycleOwner) = renderer.destroy()
 
     override fun onGetTemplate(): Template {
+        // Icon-only buttons except Address: a smaller strip hides less of the page.
         val strip = ActionStrip.Builder()
-            .addAction(action("Back") { renderer.back() })
-            .addAction(action("Address") {
+            .addAction(action(R.drawable.ic_back) { renderer.back() })
+            .addAction(action(R.drawable.ic_search, "Address") {
                 screenManager.push(AddressScreen(carContext) { renderer.load(it) })
             })
-            .addAction(action("Menu") { screenManager.push(MenuScreen(carContext, renderer)) })
-            .addAction(action("Scroll") { renderer.pageDown() })
+            .addAction(action(R.drawable.ic_more) { screenManager.push(MenuScreen(carContext, renderer)) })
             .build()
 
         return NavigationTemplate.Builder()
             .setActionStrip(strip)
             // Pan mode makes the host deliver onScroll/onFling to the surface (design section 4).
-            .setMapActionStrip(ActionStrip.Builder().addAction(Action.PAN).build())
+            // The map strip sits by the page edge, where page-up/down buttons belong.
+            .setMapActionStrip(ActionStrip.Builder()
+                .addAction(Action.PAN)
+                .addAction(action(R.drawable.ic_up) { renderer.pageUp() })
+                .addAction(action(R.drawable.ic_down) { renderer.pageDown() })
+                .build())
             .setPanModeListener { /* no distinct pan UI; scroll handlers do the work */ }
             .build()
     }
-
-    private fun action(title: String, onClick: () -> Unit) =
-        Action.Builder().setTitle(title).setOnClickListener(onClick).build()
 
     private val surfaceCallback = object : SurfaceCallback {
         override fun onSurfaceAvailable(c: SurfaceContainer) = renderer.onSurfaceAvailable(c)
@@ -58,3 +67,9 @@ class BrowserScreen(carContext: CarContext) : Screen(carContext), DefaultLifecyc
         override fun onScale(fx: Float, fy: Float, factor: Float) = renderer.onScale(factor)
     }
 }
+
+/** Car action with a white icon and optional label; shared by the browser and menu screens. */
+fun Screen.action(icon: Int, title: String? = null, onClick: () -> Unit): Action =
+    Action.Builder().setIcon(carIcon(icon)).apply { title?.let { setTitle(it) } }.setOnClickListener(onClick).build()
+
+fun Screen.carIcon(icon: Int) = CarIcon.Builder(IconCompat.createWithResource(carContext, icon)).build()

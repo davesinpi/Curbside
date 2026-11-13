@@ -4,15 +4,13 @@ import android.app.Presentation
 import android.graphics.Rect
 import android.hardware.display.DisplayManager
 import android.hardware.display.VirtualDisplay
-import android.media.AudioAttributes
-import android.media.AudioFocusRequest
-import android.media.AudioManager
 import android.media.session.MediaSession
 import android.media.session.PlaybackState
 import android.os.SystemClock
 import android.view.Display
 import android.view.Gravity
 import android.view.InputDevice
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
@@ -26,6 +24,7 @@ import android.webkit.WebViewClient
 import android.widget.FrameLayout
 import androidx.car.app.CarContext
 import androidx.car.app.SurfaceContainer
+import org.json.JSONObject
 
 /**
  * Binds one long-lived WebView to whatever car surface Android Auto hands us.
@@ -51,23 +50,6 @@ class SurfaceRenderer(private val carContext: CarContext) {
     private var surfaceW = 0
     private var surfaceH = 0
 
-    // Media audio focus only while a page is actually playing (design section 4), so opening the
-    // browser doesn't stop the driver's music. Losing focus (another app, nav prompt) pauses the page.
-    private val audioManager = carContext.getSystemService(AudioManager::class.java)
-    private val focusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
-        .setAudioAttributes(
-            AudioAttributes.Builder()
-                .setUsage(AudioAttributes.USAGE_MEDIA)
-                .setContentType(AudioAttributes.CONTENT_TYPE_MOVIE)
-                .build()
-        )
-        .setOnAudioFocusChangeListener { change ->
-            if (change == AudioManager.AUDIOFOCUS_LOSS || change == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT) {
-                root.post { webView?.evaluateJavascript(PAUSE_ALL_JS, null) }
-            }
-        }
-        .build()
-
     // Steering-wheel play/pause (design section 4): media buttons resume or pause the page's media.
     private val mediaSession = MediaSession(carContext, "Curbside").apply {
         setCallback(object : MediaSession.Callback() {
@@ -87,14 +69,18 @@ class SurfaceRenderer(private val carContext: CarContext) {
         mediaSession.isActive = true
     }
 
-    /** Called from page JS on media play/pause. Only exposes focus/playback state: harmless to any page. */
-    private inner class AudioBridge {
-        @JavascriptInterface fun play() {
-            root.post { audioManager.requestAudioFocus(focusRequest); setPlaying(true) }
-        }
-        @JavascriptInterface fun pause() {
-            root.post { audioManager.abandonAudioFocusRequest(focusRequest); setPlaying(false) }
-        }
+    /** Car keyboard for page text fields: set by BrowserScreen, called with the field's current text. */
+    var onEditText: ((String) -> Unit)? = null
+
+    /**
+     * Called from page JS. Only reports playback state and text-field taps: harmless to any page.
+     * Audio focus is left to WebView itself; requesting our own focus too made the two fight and
+     * the loser paused every video right after play.
+     */
+    private inner class Bridge {
+        @JavascriptInterface fun play() { root.post { setPlaying(true) } }
+        @JavascriptInterface fun pause() { root.post { setPlaying(false) } }
+        @JavascriptInterface fun edit(value: String) { root.post { onEditText?.invoke(value) } }
     }
 
     private fun ensureWebView(): WebView {
@@ -114,7 +100,7 @@ class SurfaceRenderer(private val carContext: CarContext) {
             settings.saveFormData = false
             CookieManager.getInstance().setAcceptThirdPartyCookies(this, false)
             if (isDesktop(carContext)) settings.userAgentString = desktopUserAgent(settings.userAgentString)
-            addJavascriptInterface(AudioBridge(), "CurbsideAudio")
+            addJavascriptInterface(Bridge(), "Curbside")
             webChromeClient = fullscreenVideoClient()
             // Without a WebViewClient, tapped links are handed to the phone's browser instead of
             // loading here. Non-web schemes (intent:, market:, tel:) are dropped: no phone UI in a car.
@@ -183,7 +169,6 @@ class SurfaceRenderer(private val carContext: CarContext) {
 
     fun destroy() {
         onSurfaceDestroyed()
-        audioManager.abandonAudioFocusRequest(focusRequest)
         mediaSession.release()
         webView?.destroy(); webView = null
     }
@@ -209,7 +194,19 @@ class SurfaceRenderer(private val carContext: CarContext) {
             reload()
         }
     }
-    fun pageDown() { webView?.let { it.scrollBy(0, (it.height * 0.85f).toInt()) } }
+    /** Replaces the tapped field's text (execCommand fires the page's input events) and presses Enter. */
+    fun typeText(text: String) {
+        val wv = webView ?: return
+        wv.evaluateJavascript("document.execCommand('selectAll');document.execCommand('insertText',false,${JSONObject.quote(text)})") {
+            val t = SystemClock.uptimeMillis()
+            wv.dispatchKeyEvent(KeyEvent(t, t, KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER, 0))
+            wv.dispatchKeyEvent(KeyEvent(t, t, KeyEvent.ACTION_UP, KeyEvent.KEYCODE_ENTER, 0))
+        }
+    }
+
+    fun pageDown() = page(0.85f)
+    fun pageUp() = page(-0.85f)
+    private fun page(f: Float) { webView?.let { it.scrollBy(0, (it.height * f).toInt()) } }
 
     /**
      * Car taps arrive in surface coordinates. [root] fills the surface at (0,0), so dispatching
@@ -242,10 +239,14 @@ class SurfaceRenderer(private val carContext: CarContext) {
 
     private companion object {
         // Media events don't bubble, so listen in the capture phase. Guarded: onPageFinished can repeat.
+        // A tap on a text field hands it to the car keyboard (the phone IME can't reach a virtual display).
         const val MEDIA_HOOK_JS = """(function(){if(window.__curbside)return;window.__curbside=1;
-            document.addEventListener('play',function(e){window.__curbsideLast=e.target;CurbsideAudio.play()},true);
-            document.addEventListener('pause',function(){CurbsideAudio.pause()},true);
-            document.addEventListener('ended',function(){CurbsideAudio.pause()},true);})()"""
+            document.addEventListener('play',function(e){window.__curbsideLast=e.target;Curbside.play()},true);
+            document.addEventListener('pause',function(){Curbside.pause()},true);
+            document.addEventListener('ended',function(){Curbside.pause()},true);
+            document.addEventListener('click',function(e){var t=e.target;
+              if(t.isContentEditable||t.tagName=='TEXTAREA'||(t.tagName=='INPUT'&&/^(text|search|email|url|tel|number|password)$/.test(t.type))){
+                t.focus();Curbside.edit(t.value||t.innerText||'')}},true);})()"""
         const val PAUSE_ALL_JS = "document.querySelectorAll('video,audio').forEach(function(m){m.pause()})"
         const val PLAY_LAST_JS = "window.__curbsideLast&&window.__curbsideLast.play()"
     }
