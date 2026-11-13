@@ -16,10 +16,20 @@ fun toUrl(input: String): String {
     }
 }
 
+fun prefs(ctx: Context) = ctx.getSharedPreferences("curbside", Context.MODE_PRIVATE)
+
+/** Desktop site toggle (design section 6). Default desktop: car screens are wide. */
+fun isDesktop(ctx: Context) = prefs(ctx).getBoolean("desktop", true)
+fun setDesktop(ctx: Context, on: Boolean) = prefs(ctx).edit().putBoolean("desktop", on).apply()
+
+/** Desktop Chrome UA that keeps the WebView's real Chrome version, so sites don't serve "outdated browser" pages. */
+fun desktopUserAgent(defaultUa: String): String {
+    val chrome = Regex("""Chrome/[\d.]+""").find(defaultUa)?.value ?: "Chrome/120.0.0.0"
+    return "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) $chrome Safari/537.36"
+}
+
 /** Bookmarks: "Title|url" lines in SharedPreferences, edited on the phone (SetupActivity). */
 object Bookmarks {
-    private fun prefs(ctx: Context) = ctx.getSharedPreferences("curbside", Context.MODE_PRIVATE)
-
     data class Entry(val title: String, val url: String)
 
     fun list(ctx: Context): List<Entry> =

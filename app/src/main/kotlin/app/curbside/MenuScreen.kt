@@ -1,0 +1,52 @@
+package app.curbside
+
+import androidx.car.app.CarContext
+import androidx.car.app.Screen
+import androidx.car.app.constraints.ConstraintManager
+import androidx.car.app.model.Action
+import androidx.car.app.model.ItemList
+import androidx.car.app.model.ListTemplate
+import androidx.car.app.model.Row
+import androidx.car.app.model.SectionedItemList
+import androidx.car.app.model.Template
+
+/**
+ * Page actions + bookmarks (design section 6). The nav action strip holds only 4 buttons,
+ * so home/forward/reload/desktop live here instead.
+ */
+class MenuScreen(carContext: CarContext, private val renderer: SurfaceRenderer) : Screen(carContext) {
+
+    override fun onGetTemplate(): Template {
+        val page = listOf(
+            "Home" to renderer::home,
+            "Forward" to renderer::forward,
+            "Reload" to renderer::reload,
+            (if (isDesktop(carContext)) "Switch to mobile site" else "Switch to desktop site") to renderer::toggleDesktop,
+        )
+        val pageList = ItemList.Builder()
+        page.forEach { (title, act) -> pageList.addItem(row(title, null) { act() }) }
+
+        // Hosts cap list rows (often lower while driving); bookmarks get whatever is left.
+        val limit = if (carContext.carAppApiLevel >= 2)
+            carContext.getCarService(ConstraintManager::class.java).getContentLimit(ConstraintManager.CONTENT_LIMIT_TYPE_LIST)
+        else 6
+        val marks = Bookmarks.list(carContext).take((limit - page.size).coerceAtLeast(0))
+
+        val template = ListTemplate.Builder()
+            .setTitle("Menu")
+            .setHeaderAction(Action.BACK)
+            .addSectionedList(SectionedItemList.create(pageList.build(), "Page"))
+        if (marks.isNotEmpty()) {
+            val markList = ItemList.Builder()
+            marks.forEach { b -> markList.addItem(row(b.title, b.url) { renderer.load(b.url) }) }
+            template.addSectionedList(SectionedItemList.create(markList.build(), "Bookmarks"))
+        }
+        return template.build()
+    }
+
+    private fun row(title: String, text: String?, onClick: () -> Unit) = Row.Builder()
+        .setTitle(title)
+        .apply { text?.let { addText(it) } }
+        .setOnClickListener { onClick(); screenManager.pop() }
+        .build()
+}

@@ -1,9 +1,6 @@
 package app.curbside
 
 import android.graphics.Rect
-import android.media.AudioAttributes
-import android.media.AudioFocusRequest
-import android.media.AudioManager
 import androidx.car.app.AppManager
 import androidx.car.app.CarContext
 import androidx.car.app.Screen
@@ -20,19 +17,14 @@ import androidx.lifecycle.LifecycleOwner
 class BrowserScreen(carContext: CarContext) : Screen(carContext), DefaultLifecycleObserver {
 
     private val renderer = SurfaceRenderer(carContext)
-    private var audioFocus: AudioFocusRequest? = null
 
     init { lifecycle.addObserver(this) }
 
     override fun onCreate(owner: LifecycleOwner) {
         carContext.getCarService(AppManager::class.java).setSurfaceCallback(surfaceCallback)
-        requestMediaAudioFocus()
     }
 
-    override fun onDestroy(owner: LifecycleOwner) {
-        renderer.destroy()
-        audioFocus?.let { carContext.getSystemService(AudioManager::class.java).abandonAudioFocusRequest(it) }
-    }
+    override fun onDestroy(owner: LifecycleOwner) = renderer.destroy()
 
     override fun onGetTemplate(): Template {
         val strip = ActionStrip.Builder()
@@ -40,9 +32,7 @@ class BrowserScreen(carContext: CarContext) : Screen(carContext), DefaultLifecyc
             .addAction(action("Address") {
                 screenManager.push(AddressScreen(carContext) { renderer.load(it) })
             })
-            .addAction(action("Bookmarks") {
-                screenManager.push(BookmarksScreen(carContext) { renderer.load(it) })
-            })
+            .addAction(action("Menu") { screenManager.push(MenuScreen(carContext, renderer)) })
             .addAction(action("Scroll") { renderer.pageDown() })
             .build()
 
@@ -56,18 +46,6 @@ class BrowserScreen(carContext: CarContext) : Screen(carContext), DefaultLifecyc
 
     private fun action(title: String, onClick: () -> Unit) =
         Action.Builder().setTitle(title).setOnClickListener(onClick).build()
-
-    private fun requestMediaAudioFocus() {
-        // So the car routes WebView video/audio like music (design section 4). Minimal, no ducking logic.
-        val am = carContext.getSystemService(AudioManager::class.java)
-        audioFocus = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
-            .setAudioAttributes(
-                AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_MEDIA)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_MOVIE)
-                    .build()
-            ).build().also { am.requestAudioFocus(it) }
-    }
 
     private val surfaceCallback = object : SurfaceCallback {
         override fun onSurfaceAvailable(c: SurfaceContainer) = renderer.onSurfaceAvailable(c)
