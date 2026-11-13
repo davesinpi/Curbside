@@ -37,9 +37,9 @@ full-screen apps (such as PrivaCar or AABrowser).
 - A car or head unit with Android Auto (USB or wireless).
 
 **Install**
-1. Download `Curbside-1.2.apk` from the [latest release](../../releases/latest)
+1. Download `Curbside-1.2.1.apk` from the [latest release](../../releases/latest)
    and install it on the phone (open the file and allow installing from
-   that source, or `adb install Curbside-1.2.apk`). Play Protect may warn about a
+   that source, or `adb install Curbside-1.2.1.apk`). Play Protect may warn about a
    sideloaded app: choose *More details*, then *Install anyway*.
 2. Turn on **Unknown sources** in Android Auto: open Android Auto's settings, tap
    **Version** 10 times to unlock developer mode, then **⋮** > **Developer
@@ -50,11 +50,11 @@ full-screen apps (such as PrivaCar or AABrowser).
 > without an installer record (file manager or plain `adb install`), and
 > Android Auto drops it from the launcher on reconnect. Reinstall it with the
 > Play Store recorded as the installer; your settings and bookmarks are kept:
-> `adb install -r -i com.android.vending Curbside-1.2.apk`
+> `adb install -r -i com.android.vending Curbside-1.2.1.apk`
 
 *(Optional)* check the APK is genuine. The signing certificate's SHA-256 must be
 `84:48:54:43:AD:A8:BB:DA:AF:72:7F:43:AA:E2:49:D0:96:DF:1F:D4:D2:72:E2:44:26:5A:9C:DB:41:22:1E:78`
-(`apksigner verify --print-certs Curbside-1.2.apk`).
+(`apksigner verify --print-certs Curbside-1.2.1.apk`).
 
 ## Using it in the car
 
@@ -136,7 +136,7 @@ Car screen <- Android Auto <- NavigationTemplate (Curbside)
    is still on.
 3. Disconnect and reconnect the phone.
 4. If it shows after installing but vanishes once the car restarts, reinstall with
-   `adb install -r -i com.android.vending Curbside-1.2.apk` (see Install).
+   `adb install -r -i com.android.vending Curbside-1.2.1.apk` (see Install).
 
 **Tapping play does nothing.** Update to the latest build. Older builds requested
 audio focus twice and paused video right after it started.
