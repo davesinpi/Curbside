@@ -27,6 +27,7 @@ full-screen apps (such as PrivaCar or AABrowser).
 - [Troubleshooting](#troubleshooting)
 - [Limitations](#limitations)
 - [Build from source](#build-from-source)
+- [Related projects](#related-projects)
 
 ## Quick start
 
@@ -173,6 +174,21 @@ Android Auto's developer settings, tap *Start head unit server*, then:
 adb forward tcp:5277 tcp:5277
 desktop-head-unit --adb=5277
 ```
+
+## Related projects
+
+Three independent projects for getting more out of Android Auto. They don't depend on each other.
+
+| | Curbside | [PrivaCar](https://github.com/davesinpi/PrivaCarBrowser) | [AutoRepack](https://github.com/davesinpi/AutoRepack) |
+|---|---|---|---|
+| What it does | Web and video browser for the car screen | Privacy-focused web browser for the car screen | Makes an Android Auto copy of a media or messaging app you already have |
+| Android Auto phones | **Android 14 and older** (and newer) | Android 15 and newer | Any |
+| Android Automotive head units | No | Yes | No |
+| How it gets on screen | Draws on a navigation app's map surface | Full-screen app | Rewrites the app's manifest |
+
+Which one? On **Android 15+**, PrivaCar is the fuller browser (privacy hardening,
+userscripts). On **Android 14 and older**, Android Auto won't show PrivaCar, so use
+Curbside. For a media or messaging app that isn't on Android Auto, use AutoRepack.
 
 ## License
 
