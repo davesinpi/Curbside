@@ -242,9 +242,10 @@ class SurfaceRenderer(private val carContext: CarContext) {
         webView?.let(::applyZoom)
     }
     // Fullscreen video gets 100%: CSS zoom would shrink it too and leave the rest of the screen white.
+    // touch-action: manipulation turns off double-tap zoom (quick taps kept zooming) but keeps pinch.
     private fun applyZoom(wv: WebView) {
         val z = if (customView != null) 100 else pageZoom(carContext)
-        wv.evaluateJavascript("document.documentElement.style.zoom='$z%'", null)
+        wv.evaluateJavascript("var s=document.documentElement.style;s.zoom='$z%';s.touchAction='manipulation'", null)
     }
     fun onScale(factor: Float) { if (factor > 0f) webView?.zoomBy(factor.coerceIn(0.01f, 100f)) }
 
