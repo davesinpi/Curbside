@@ -22,9 +22,6 @@ class MenuScreen(carContext: CarContext, private val renderer: SurfaceRenderer) 
         val page = listOf(
             Triple("Home", R.drawable.ic_home, renderer::home),
             Triple("Reload", R.drawable.ic_reload, renderer::reload),
-            // Most head units are single-touch, so pinch never arrives: zoom by tap instead.
-            Triple("Zoom in", R.drawable.ic_zoom_in) { renderer.zoom(true) },
-            Triple("Zoom out", R.drawable.ic_zoom_out) { renderer.zoom(false) },
             Triple("Bookmark this page", R.drawable.ic_bookmark) {
                 CarToast.makeText(carContext, renderer.bookmarkPage(), CarToast.LENGTH_SHORT).show()
             },
@@ -35,9 +32,21 @@ class MenuScreen(carContext: CarContext, private val renderer: SurfaceRenderer) 
         val limit = if (carContext.carAppApiLevel >= 2)
             carContext.getCarService(ConstraintManager::class.java).getContentLimit(ConstraintManager.CONTENT_LIMIT_TYPE_LIST)
         else 6
+        val rows = page.map { (title, icon, act) -> row(title, null, icon) { act() } }.toMutableList()
+        // Most head units are single-touch, so pinch never arrives: zoom by tap instead.
+        // One row: tap = zoom in, its trailing button = zoom out. Hosts allow only one row action,
+        // and only from Car API 6; older hosts get a separate zoom-out row.
+        val zoomIn = row("Zoom in (${pageZoom(carContext)}%)", null, R.drawable.ic_zoom_in) { renderer.zoom(1) }
+        if (carContext.carAppApiLevel >= 6) rows.add(2, Row.Builder()
+            .setTitle(zoomIn.title!!)
+            .setImage(carIcon(R.drawable.ic_zoom_in))
+            .setOnClickListener { renderer.zoom(1); screenManager.pop() }
+            .addAction(zoomAction(R.drawable.ic_zoom_out, -1))
+            .build())
+        else rows.addAll(2, listOf(zoomIn, row("Zoom out", null, R.drawable.ic_zoom_out) { renderer.zoom(-1) }))
         val pageList = ItemList.Builder()
-        page.take(limit).forEach { (title, icon, act) -> pageList.addItem(row(title, null, icon) { act() }) }
-        val marks = Bookmarks.list(carContext).take((limit - page.size).coerceAtLeast(0))
+        rows.take(limit).forEach { pageList.addItem(it) }
+        val marks = Bookmarks.list(carContext).take((limit - rows.size).coerceAtLeast(0))
 
         val template = ListTemplate.Builder()
             .setTitle(renderer.title?.take(60) ?: "Menu")
@@ -50,6 +59,11 @@ class MenuScreen(carContext: CarContext, private val renderer: SurfaceRenderer) 
         }
         return template.build()
     }
+
+    private fun zoomAction(icon: Int, step: Int) = Action.Builder()
+        .setIcon(carIcon(icon))
+        .setOnClickListener { renderer.zoom(step); screenManager.pop() }
+        .build()
 
     private fun row(title: String, text: String?, icon: Int, onClick: () -> Unit) = Row.Builder()
         .setTitle(title)

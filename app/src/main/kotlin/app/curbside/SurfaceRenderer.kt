@@ -115,6 +115,7 @@ class SurfaceRenderer(private val carContext: CarContext) {
                 override fun onPageFinished(view: WebView, url: String) {
                     if (url.startsWith("http")) prefs(carContext).edit().putString("last", url).apply()
                     view.evaluateJavascript(MEDIA_HOOK_JS, null)
+                    applyZoom(view)
                 }
             }
         }
@@ -241,7 +242,17 @@ class SurfaceRenderer(private val carContext: CarContext) {
 
     fun onScroll(dx: Float, dy: Float) { webView?.scrollBy(dx.toInt(), dy.toInt()) }
     fun onFling(vx: Float, vy: Float) { webView?.flingScroll(-vx.toInt(), -vy.toInt()) }
-    fun zoom(zoomIn: Boolean) { webView?.apply { if (zoomIn) zoomIn() else zoomOut() } }
+    /**
+     * Steps page zoom through [ZOOMS]. CSS zoom, not WebView.zoomIn/Out: WebView can't zoom out past
+     * its fit-to-width start scale, and CSS zoom reflows the page so it still fits the screen width.
+     */
+    fun zoom(step: Int) {
+        val i = ZOOMS.indexOf(pageZoom(carContext)).takeIf { it >= 0 } ?: ZOOMS.indexOf(100)
+        setPageZoom(carContext, ZOOMS[(i + step).coerceIn(ZOOMS.indices)])
+        webView?.let(::applyZoom)
+    }
+    private fun applyZoom(wv: WebView) =
+        wv.evaluateJavascript("document.documentElement.style.zoom='${pageZoom(carContext)}%'", null)
     fun onScale(factor: Float) { if (factor > 0f) webView?.zoomBy(factor.coerceIn(0.01f, 100f)) }
 
     private fun fullscreenVideoClient() = object : WebChromeClient() {

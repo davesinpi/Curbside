@@ -65,7 +65,7 @@ full-screen apps (such as PrivaCar or AABrowser).
 | **⋮** | Menu, titled with the current page: Home, Reload, **Bookmark this page**, **Text size** (100, 125, 150%), desktop or mobile site, and your bookmarks. |
 | **▲ / ▼** | Scroll the page up or down by about one screen. |
 | Tap the page | Taps links, buttons and video controls. |
-| Drag / fling / pinch | Scroll freely and zoom (where the car screen supports it). **⋮** > *Zoom in* / *Zoom out* works on every screen. |
+| Drag / fling / pinch | Scroll freely and zoom (where the car screen supports it). **⋮** > *Zoom in* (tap the row) or its zoom-out button works on every screen; the zoom level is remembered. |
 | Tap a text box | Opens the car keyboard. What you type goes into the box and Enter is pressed, so searches on sites such as YouTube work. |
 
 The buttons hide after a few seconds; tap the screen to bring them back.

@@ -28,6 +28,11 @@ val TEXT_SIZES = listOf(100, 125, 150)
 fun textSize(ctx: Context) = prefs(ctx).getInt("textZoom", 100)
 fun setTextSize(ctx: Context, zoom: Int) = prefs(ctx).edit().putInt("textZoom", zoom).apply()
 
+/** Page zoom % (CSS zoom), stepped with the car menu's -/+ buttons. */
+val ZOOMS = listOf(50, 67, 75, 90, 100, 110, 125, 150, 175, 200)
+fun pageZoom(ctx: Context) = prefs(ctx).getInt("pageZoom", 100)
+fun setPageZoom(ctx: Context, zoom: Int) = prefs(ctx).edit().putInt("pageZoom", zoom).apply()
+
 /** Desktop site toggle (design section 6). Default desktop: car screens are wide. */
 fun isDesktop(ctx: Context) = prefs(ctx).getBoolean("desktop", true)
 fun setDesktop(ctx: Context, on: Boolean) = prefs(ctx).edit().putBoolean("desktop", on).apply()
