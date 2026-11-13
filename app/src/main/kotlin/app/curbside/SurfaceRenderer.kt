@@ -1,7 +1,6 @@
 package app.curbside
 
 import android.app.Presentation
-import android.graphics.Rect
 import android.hardware.display.DisplayManager
 import android.hardware.display.VirtualDisplay
 import android.media.session.MediaSession
@@ -47,7 +46,6 @@ class SurfaceRenderer(private val carContext: CarContext) {
     private var customView: View? = null
     // Reopen where the driver left off, not the home page.
     private var pendingUrl = prefs(carContext).getString("last", null) ?: homeUrl(carContext)
-    private var contentInsets = Rect()
     private var surfaceW = 0
     private var surfaceH = 0
 
@@ -148,20 +146,8 @@ class SurfaceRenderer(private val carContext: CarContext) {
             window?.clearFlags(2 /* FLAG_DIM_BEHIND */)
             show()
         }
-        applyInsets()
         wv.onResume()
         wv.resumeTimers()
-    }
-
-    /** Pad content so the page isn't hidden under Android Auto's own chrome (design section 4). */
-    fun onVisibleAreaChanged(area: Rect) {
-        if (!area.isEmpty) { contentInsets = area; applyInsets() }
-    }
-
-    private fun applyInsets() {
-        if (presentation == null) return
-        val a = contentInsets
-        root.setPadding(a.left, a.top, (surfaceW - a.right).coerceAtLeast(0), (surfaceH - a.bottom).coerceAtLeast(0))
     }
 
     fun onSurfaceDestroyed() {

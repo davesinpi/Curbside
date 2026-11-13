@@ -1,6 +1,5 @@
 package app.curbside
 
-import android.graphics.Rect
 import androidx.car.app.AppManager
 import androidx.car.app.CarContext
 import androidx.car.app.Screen
@@ -60,8 +59,6 @@ class BrowserScreen(carContext: CarContext) : Screen(carContext), DefaultLifecyc
     private val surfaceCallback = object : SurfaceCallback {
         override fun onSurfaceAvailable(c: SurfaceContainer) = renderer.onSurfaceAvailable(c)
         override fun onSurfaceDestroyed(c: SurfaceContainer) = renderer.onSurfaceDestroyed()
-        override fun onVisibleAreaChanged(area: Rect) = renderer.onVisibleAreaChanged(area)
-        override fun onStableAreaChanged(area: Rect) = renderer.onVisibleAreaChanged(area)
         override fun onClick(x: Float, y: Float) = renderer.onClick(x, y)
         override fun onScroll(dx: Float, dy: Float) = renderer.onScroll(dx, dy)
         override fun onFling(vx: Float, vy: Float) = renderer.onFling(vx, vy)
