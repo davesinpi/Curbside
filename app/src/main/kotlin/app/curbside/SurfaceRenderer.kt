@@ -184,7 +184,11 @@ class SurfaceRenderer(private val carContext: CarContext) {
         setTextSize(carContext, next)
         webView?.settings?.textZoom = next
     }
-    fun back(): Boolean = webView?.takeIf { it.canGoBack() }?.also { it.goBack() } != null
+    /** Leaves fullscreen video first (WebView then calls onHideCustomView), else goes back a page. */
+    fun back(): Boolean {
+        if (customView != null) { webView?.evaluateJavascript("document.exitFullscreen()", null); return true }
+        return webView?.takeIf { it.canGoBack() }?.also { it.goBack() } != null
+    }
     fun forward() { webView?.takeIf { it.canGoForward() }?.goForward() }
     fun reload() { webView?.reload() }
 
@@ -237,17 +241,22 @@ class SurfaceRenderer(private val carContext: CarContext) {
         setPageZoom(carContext, ZOOMS[(i + step).coerceIn(ZOOMS.indices)])
         webView?.let(::applyZoom)
     }
-    private fun applyZoom(wv: WebView) =
-        wv.evaluateJavascript("document.documentElement.style.zoom='${pageZoom(carContext)}%'", null)
+    // Fullscreen video gets 100%: CSS zoom would shrink it too and leave the rest of the screen white.
+    private fun applyZoom(wv: WebView) {
+        val z = if (customView != null) 100 else pageZoom(carContext)
+        wv.evaluateJavascript("document.documentElement.style.zoom='$z%'", null)
+    }
     fun onScale(factor: Float) { if (factor > 0f) webView?.zoomBy(factor.coerceIn(0.01f, 100f)) }
 
     private fun fullscreenVideoClient() = object : WebChromeClient() {
         override fun onShowCustomView(view: View, callback: CustomViewCallback) {
             customView = view
+            webView?.let(::applyZoom)
             root.addView(view, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT, Gravity.CENTER))
         }
         override fun onHideCustomView() {
             customView?.let { root.removeView(it) }; customView = null
+            webView?.let(::applyZoom)
         }
     }
 
