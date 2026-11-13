@@ -98,6 +98,9 @@ class SurfaceRenderer(private val carContext: CarContext) {
             // Privacy defaults (design section 6): no third-party cookies, no form/password saving.
             @Suppress("DEPRECATION")
             settings.saveFormData = false
+            // New-tab links (target=_blank, window.open) reach onCreateWindow and open in this view.
+            settings.setSupportMultipleWindows(true)
+            settings.javaScriptCanOpenWindowsAutomatically = true
             CookieManager.getInstance().setAcceptThirdPartyCookies(this, false)
             if (isDesktop(carContext)) settings.userAgentString = desktopUserAgent(settings.userAgentString)
             addJavascriptInterface(Bridge(), "Curbside")
@@ -257,6 +260,22 @@ class SurfaceRenderer(private val carContext: CarContext) {
     }
 
     private fun fullscreenVideoClient() = object : WebChromeClient() {
+        // One car screen, no tabs: a new-tab link loads here instead. Only on a tap, so pop-up ads stay blocked.
+        // A throwaway WebView receives the new window's first navigation and hands the URL over.
+        override fun onCreateWindow(view: WebView, isDialog: Boolean, isUserGesture: Boolean, resultMsg: android.os.Message): Boolean {
+            if (!isUserGesture) return false
+            val catcher = WebView(view.context)
+            catcher.webViewClient = object : WebViewClient() {
+                override fun shouldOverrideUrlLoading(v: WebView, request: WebResourceRequest): Boolean {
+                    if (request.url.scheme in setOf("http", "https")) view.loadUrl(request.url.toString())
+                    v.destroy()
+                    return true
+                }
+            }
+            (resultMsg.obj as WebView.WebViewTransport).webView = catcher
+            resultMsg.sendToTarget()
+            return true
+        }
         override fun onShowCustomView(view: View, callback: CustomViewCallback) {
             customView = view
             webView?.let(::applyZoom)
