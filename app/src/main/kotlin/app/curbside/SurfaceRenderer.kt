@@ -45,7 +45,8 @@ class SurfaceRenderer(private val carContext: CarContext) {
     private var virtualDisplay: VirtualDisplay? = null
     private var presentation: Presentation? = null
     private var customView: View? = null
-    private var pendingUrl = HOME_URL
+    // Reopen where the driver left off, not the home page.
+    private var pendingUrl = prefs(carContext).getString("last", null) ?: homeUrl(carContext)
     private var contentInsets = Rect()
     private var surfaceW = 0
     private var surfaceH = 0
@@ -95,6 +96,7 @@ class SurfaceRenderer(private val carContext: CarContext) {
             settings.builtInZoomControls = true
             settings.displayZoomControls = false
             settings.setSupportZoom(true)
+            settings.textZoom = textSize(carContext)
             // Privacy defaults (design section 6): no third-party cookies, no form/password saving.
             @Suppress("DEPRECATION")
             settings.saveFormData = false
@@ -111,6 +113,7 @@ class SurfaceRenderer(private val carContext: CarContext) {
                 // ponytail: listens on the top document only; media inside cross-origin iframes
                 // (embedded players) won't take audio focus. Inject per-frame if that matters.
                 override fun onPageFinished(view: WebView, url: String) {
+                    if (url.startsWith("http")) prefs(carContext).edit().putString("last", url).apply()
                     view.evaluateJavascript(MEDIA_HOOK_JS, null)
                 }
             }
@@ -180,7 +183,20 @@ class SurfaceRenderer(private val carContext: CarContext) {
     // ---- actions / input (design section 4) ----
 
     fun load(input: String) { pendingUrl = toUrl(input); webView?.loadUrl(pendingUrl) ?: ensureWebView() }
-    fun home() = load(HOME_URL)
+    fun home() = load(homeUrl(carContext))
+    val title: String? get() = webView?.title?.takeIf { it.isNotBlank() }
+
+    fun bookmarkPage(): String {
+        val url = webView?.url?.takeIf { it.startsWith("http") } ?: return "Nothing to bookmark"
+        return Bookmarks.add(carContext, title ?: url, url)
+    }
+
+    /** Steps text size 100 -> 125 -> 150 -> 100 %. Bigger text is easier to read at arm's length. */
+    fun nextTextSize() {
+        val next = TEXT_SIZES[(TEXT_SIZES.indexOf(textSize(carContext)) + 1) % TEXT_SIZES.size]
+        setTextSize(carContext, next)
+        webView?.settings?.textZoom = next
+    }
     fun back(): Boolean = webView?.takeIf { it.canGoBack() }?.also { it.goBack() } != null
     fun forward() { webView?.takeIf { it.canGoForward() }?.goForward() }
     fun reload() { webView?.reload() }

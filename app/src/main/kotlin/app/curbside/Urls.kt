@@ -18,6 +18,16 @@ fun toUrl(input: String): String {
 
 fun prefs(ctx: Context) = ctx.getSharedPreferences("curbside", Context.MODE_PRIVATE)
 
+/** Home page, set in the phone app. */
+fun homeUrl(ctx: Context) = prefs(ctx).getString("home", null) ?: HOME_URL
+fun setHomeUrl(ctx: Context, input: String) =
+    prefs(ctx).edit().apply { if (input.isBlank()) remove("home") else putString("home", toUrl(input)) }.apply()
+
+/** Page text size (WebView textZoom %), cycled from the car menu. */
+val TEXT_SIZES = listOf(100, 125, 150)
+fun textSize(ctx: Context) = prefs(ctx).getInt("textZoom", 100)
+fun setTextSize(ctx: Context, zoom: Int) = prefs(ctx).edit().putInt("textZoom", zoom).apply()
+
 /** Desktop site toggle (design section 6). Default desktop: car screens are wide. */
 fun isDesktop(ctx: Context) = prefs(ctx).getBoolean("desktop", true)
 fun setDesktop(ctx: Context, on: Boolean) = prefs(ctx).edit().putBoolean("desktop", on).apply()
@@ -36,6 +46,16 @@ object Bookmarks {
         prefs(ctx).getStringSet("bookmarks", null)?.sorted().orEmpty()
             .mapNotNull { line -> line.split("|", limit = 2).takeIf { it.size == 2 }?.let { Entry(it[0], it[1]) } }
             .ifEmpty { DEFAULTS }
+
+    /** Adds a page from the car menu. Returns a short message for the driver. */
+    fun add(ctx: Context, title: String, url: String): String {
+        val now = list(ctx)
+        return when {
+            now.any { it.url == url } -> "Already bookmarked"
+            now.size >= MAX_BOOKMARKS -> "Bookmarks full ($MAX_BOOKMARKS)"
+            else -> { save(ctx, now + Entry(title.ifBlank { url }.take(40), url)); "Bookmarked" }
+        }
+    }
 
     fun save(ctx: Context, entries: List<Entry>) {
         val set = entries.take(MAX_BOOKMARKS)

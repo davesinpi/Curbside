@@ -2,6 +2,7 @@
 
 # Curbside
 
+[![Release](https://img.shields.io/github/v/release/davesinpi/Curbside)](../../releases)
 ![Android](https://img.shields.io/badge/Android-8%2B-3DDC84?logo=android&logoColor=white)
 ![Android Auto](https://img.shields.io/badge/Android_Auto-Android_14_phones_too-34A853?logo=androidauto&logoColor=white)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
@@ -35,8 +36,9 @@ full-screen apps (such as PrivaCar or AABrowser).
 - A car or head unit with Android Auto (USB or wireless).
 
 **Install**
-1. Install the Curbside APK on the phone (open the file and allow installing from
-   that source, or `adb install app-release.apk`). Play Protect may warn about a
+1. Download `Curbside-1.1.apk` from the [latest release](../../releases/latest)
+   and install it on the phone (open the file and allow installing from
+   that source, or `adb install Curbside-1.1.apk`). Play Protect may warn about a
    sideloaded app: choose *More details*, then *Install anyway*.
 2. Turn on **Unknown sources** in Android Auto: open Android Auto's settings, tap
    **Version** 10 times to unlock developer mode, then **⋮** > **Developer
@@ -45,21 +47,24 @@ full-screen apps (such as PrivaCar or AABrowser).
 
 *(Optional)* check the APK is genuine. The signing certificate's SHA-256 must be
 `84:48:54:43:AD:A8:BB:DA:AF:72:7F:43:AA:E2:49:D0:96:DF:1F:D4:D2:72:E2:44:26:5A:9C:DB:41:22:1E:78`
-(`apksigner verify --print-certs app-release.apk`).
+(`apksigner verify --print-certs Curbside-1.1.apk`).
 
 ## Using it in the car
 
 | Control | What it does |
 |---|---|
-| **←** | Go back a page. |
+| **← / →** | Go back or forward a page. |
 | **Address** | Type a web address or a search (DuckDuckGo), with the car keyboard or voice. |
-| **⋮** | Menu: Home, Forward, Reload, switch desktop or mobile site, and your bookmarks. |
+| **⋮** | Menu, titled with the current page: Home, Reload, **Bookmark this page**, **Text size** (100, 125, 150%), desktop or mobile site, and your bookmarks. |
 | **▲ / ▼** | Scroll the page up or down by about one screen. |
 | Tap the page | Taps links, buttons and video controls. |
 | Drag / fling / pinch | Scroll freely and zoom (where the car screen supports it). |
 | Tap a text box | Opens the car keyboard. What you type goes into the box and Enter is pressed, so searches on sites such as YouTube work. |
 
 The buttons hide after a few seconds; tap the screen to bring them back.
+
+**Picks up where you left off.** Curbside reopens the last page you were on, even after
+the phone restarts it. Text size and the desktop/mobile choice are remembered too.
 
 **Video and audio.** HTML5 video (for example YouTube in the browser) plays on
 the car screen with sound through the car speakers. Fullscreen video is
@@ -73,6 +78,7 @@ screens are wide. Switch to the mobile site from the menu if a site looks wrong.
 
 Open **Curbside** on the phone for:
 - the setup steps above,
+- your **home page** (default: DuckDuckGo),
 - the **bookmark editor** (up to 12, shown in the car menu; edits are saved when you leave),
 - tips and troubleshooting.
 

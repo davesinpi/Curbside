@@ -34,6 +34,7 @@ class SetupActivity : Activity() {
     private val accent = 0xFF3D7BD9.toInt()
 
     private lateinit var marks: LinearLayout
+    private lateinit var home: EditText
 
     private fun dp(v: Int) = (v * resources.displayMetrics.density).toInt()
 
@@ -52,6 +53,9 @@ class SetupActivity : Activity() {
             step(2, "Connect your phone to the car."),
             step(3, "Open Curbside from the car's app launcher."),
         ))
+
+        home = field(prefs(this).getString("home", null) ?: "", "Default: duckduckgo.com", InputType.TYPE_TEXT_VARIATION_URI)
+        column.addView(card("Home page", text("Opened by Home in the car menu.", muted, 14f), home))
 
         marks = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         Bookmarks.list(this).forEach { addMark(it.title, it.url) }
@@ -77,7 +81,9 @@ class SetupActivity : Activity() {
             tip("Address", "type a web address or search, or use voice."),
             tip("Text boxes", "tap one on a page to type with the car keyboard."),
             tip("Arrows", "scroll the page a screen at a time. Drag to scroll freely."),
-            tip("Menu", "Home, Forward, Reload, desktop or mobile site, and your bookmarks."),
+            tip("Back / Forward", "the arrows at the top."),
+            tip("Menu", "Home, Reload, Bookmark this page, Text size, desktop or mobile site, and your bookmarks."),
+            tip("Resume", "Curbside reopens the last page you were on."),
         ))
 
         column.addView(card("Not showing in Android Auto?",
@@ -168,7 +174,8 @@ class SetupActivity : Activity() {
             if (u.isEmpty()) null else Bookmarks.Entry(t.ifEmpty { u }, toUrl(u))
         }
         Bookmarks.save(this, entries)
-        if (!quiet) Toast.makeText(this, "Saved ${entries.size} bookmarks", Toast.LENGTH_SHORT).show()
+        setHomeUrl(this, home.text.toString())
+        if (!quiet) Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
     }
 
     private fun text(s: String, color: Int?, size: Float, bold: Boolean = false) = TextView(this).apply {

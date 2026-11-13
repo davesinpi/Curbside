@@ -37,6 +37,7 @@ class BrowserScreen(carContext: CarContext) : Screen(carContext), DefaultLifecyc
         // Icon-only buttons except Address: a smaller strip hides less of the page.
         val strip = ActionStrip.Builder()
             .addAction(action(R.drawable.ic_back) { renderer.back() })
+            .addAction(action(R.drawable.ic_forward) { renderer.forward() })
             .addAction(action(R.drawable.ic_search, "Address") {
                 screenManager.push(AddressScreen(carContext) { renderer.load(it) })
             })

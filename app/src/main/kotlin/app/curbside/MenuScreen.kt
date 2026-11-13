@@ -1,6 +1,7 @@
 package app.curbside
 
 import androidx.car.app.CarContext
+import androidx.car.app.CarToast
 import androidx.car.app.Screen
 import androidx.car.app.constraints.ConstraintManager
 import androidx.car.app.model.Action
@@ -20,8 +21,11 @@ class MenuScreen(carContext: CarContext, private val renderer: SurfaceRenderer) 
         val desktop = isDesktop(carContext)
         val page = listOf(
             Triple("Home", R.drawable.ic_home, renderer::home),
-            Triple("Forward", R.drawable.ic_forward, renderer::forward),
             Triple("Reload", R.drawable.ic_reload, renderer::reload),
+            Triple("Bookmark this page", R.drawable.ic_bookmark) {
+                CarToast.makeText(carContext, renderer.bookmarkPage(), CarToast.LENGTH_SHORT).show()
+            },
+            Triple("Text size: ${textSize(carContext)}%", R.drawable.ic_text) { renderer.nextTextSize() },
             Triple(if (desktop) "Switch to mobile site" else "Switch to desktop site", R.drawable.ic_desktop, renderer::toggleDesktop),
         )
         val pageList = ItemList.Builder()
@@ -34,7 +38,7 @@ class MenuScreen(carContext: CarContext, private val renderer: SurfaceRenderer) 
         val marks = Bookmarks.list(carContext).take((limit - page.size).coerceAtLeast(0))
 
         val template = ListTemplate.Builder()
-            .setTitle("Menu")
+            .setTitle(renderer.title?.take(60) ?: "Menu")
             .setHeaderAction(Action.BACK)
             .addSectionedList(SectionedItemList.create(pageList.build(), "Page"))
         if (marks.isNotEmpty()) {
